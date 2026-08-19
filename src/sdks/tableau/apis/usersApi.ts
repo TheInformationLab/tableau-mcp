@@ -1,6 +1,7 @@
 import { makeApi, makeEndpoint, ZodiosEndpointDefinitions } from '@zodios/core';
 import { z } from 'zod';
 
+import { groupSchema } from '../types/group.js';
 import { paginationSchema } from '../types/pagination.js';
 import { userSchema } from '../types/user.js';
 
@@ -120,5 +121,95 @@ const updateUserEndpoint = makeEndpoint({
   response: z.object({ user: userSchema.partial() }),
 });
 
-const usersApi = makeApi([listUsersEndpoint, getUserOnSiteEndpoint, updateUserEndpoint]);
+/**
+ * Add User to Site
+ * POST /api/api-version/sites/site-id/users
+ * Adds a user to the specified site.
+ * Tableau Cloud scope: tableau:users:create
+ * @see https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site
+ */
+const createUserEndpoint = makeEndpoint({
+  method: 'post',
+  path: '/sites/:siteId/users',
+  alias: 'createUser',
+  description: 'Adds a user to the specified site.',
+  parameters: [
+    { name: 'siteId', type: 'Path', schema: z.string() },
+    {
+      name: 'body',
+      type: 'Body',
+      schema: z.object({
+        user: z.object({
+          name: z.string(),
+          siteRole: z.string(),
+          authSetting: z.string().optional(),
+        }),
+      }),
+    },
+  ],
+  response: z.object({ user: userSchema }),
+});
+
+/**
+ * Remove User from Site
+ * DELETE /api/api-version/sites/site-id/users/user-id
+ * Removes a user from the specified site.
+ * Tableau Cloud scope: tableau:users:delete
+ * @see https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#remove_user_from_site
+ */
+const deleteUserEndpoint = makeEndpoint({
+  method: 'delete',
+  path: '/sites/:siteId/users/:userId',
+  alias: 'deleteUser',
+  description: 'Removes a user from the specified site.',
+  parameters: [
+    { name: 'siteId', type: 'Path', schema: z.string() },
+    { name: 'userId', type: 'Path', schema: z.string() },
+    {
+      name: 'mapAssetsTo',
+      type: 'Query',
+      schema: z.string().optional(),
+      description: 'User ID to reassign content ownership to',
+    },
+  ],
+  response: z.void(),
+});
+
+/**
+ * Get Groups for a User
+ * GET /api/api-version/sites/site-id/users/user-id/groups
+ * Returns a list of groups that the specified user belongs to.
+ * @see https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#get_groups_for_a_user
+ */
+const listGroupsForUserEndpoint = makeEndpoint({
+  method: 'get',
+  path: '/sites/:siteId/users/:userId/groups',
+  alias: 'listGroupsForUser',
+  description: 'Returns a list of groups that the specified user belongs to.',
+  parameters: [
+    { name: 'siteId', type: 'Path', schema: z.string() },
+    { name: 'userId', type: 'Path', schema: z.string() },
+    { name: 'pageSize', type: 'Query', schema: z.number().optional() },
+    { name: 'pageNumber', type: 'Query', schema: z.number().optional() },
+  ],
+  response: z.object({
+    pagination: paginationSchema.optional(),
+    groups: z.union([
+      z.object({
+        group: z.union([z.array(groupSchema), groupSchema.transform((group) => [group])]),
+      }),
+      z.array(groupSchema).transform((groups) => ({ group: groups })),
+      z.object({}).transform(() => ({ group: [] })),
+    ]),
+  }),
+});
+
+const usersApi = makeApi([
+  listUsersEndpoint,
+  getUserOnSiteEndpoint,
+  updateUserEndpoint,
+  createUserEndpoint,
+  deleteUserEndpoint,
+  listGroupsForUserEndpoint,
+]);
 export const usersApis = [...usersApi] as const satisfies ZodiosEndpointDefinitions;
