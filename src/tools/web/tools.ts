@@ -4,7 +4,10 @@ import { getQueryAdminInsightsTool } from './adminInsights/queryAdminInsights.js
 import { getSearchContentTool } from './contentExploration/searchContent.js';
 import { getListDatasourcesTool } from './datasources/listDatasources.js';
 import { getConfirmUpdateCloudExtractRefreshTaskTool } from './extractRefreshTasks/confirmUpdateCloudExtractRefreshTask.js';
+import { getCreateExtractRefreshTaskTool } from './extractRefreshTasks/createExtractRefreshTask.js';
+import { getGetExtractRefreshTaskTool } from './extractRefreshTasks/getExtractRefreshTask.js';
 import { getListExtractRefreshTasksTool } from './extractRefreshTasks/listExtractRefreshTasks.js';
+import { getRunExtractRefreshTaskTool } from './extractRefreshTasks/runExtractRefreshTask.js';
 import { getUpdateCloudExtractRefreshTaskTool } from './extractRefreshTasks/updateCloudExtractRefreshTask.js';
 import { getGetFlowTool } from './flows/getFlow/getFlow.js';
 import { getListFlowRunsTool } from './flows/listFlowRuns/listFlowRuns.js';
@@ -13,7 +16,10 @@ import { getListFlowTasksTool } from './flows/listFlowTasks/listFlowTasks.js';
 import { getGetDatasourceMetadataTool } from './getDatasourceMetadata/getDatasourceMetadata.js';
 import { getEmbedTokenTool } from './getEmbedToken/getEmbedToken.js';
 import { getListJobsTool } from './jobs/listJobs.js';
+import { getCreateProjectTool } from './projects/createProject.js';
+import { getDeleteProjectTool } from './projects/deleteProject.js';
 import { getListProjectsTool } from './projects/listProjects.js';
+import { getUpdateProjectTool } from './projects/updateProject.js';
 import { getGeneratePulseInsightBriefTool } from './pulse/generateInsightBrief/generatePulseInsightBriefTool.js';
 import { getGeneratePulseMetricValueInsightBundleTool } from './pulse/generateMetricValueInsightBundle/generatePulseMetricValueInsightBundleTool.js';
 import { getGenerateInsightCardsTool } from './pulse/insights/generateInsightCardsTool.js';
@@ -51,6 +57,9 @@ export const webToolFactories = [
   getListExtractRefreshTasksTool,
   getUpdateCloudExtractRefreshTaskTool,
   getConfirmUpdateCloudExtractRefreshTaskTool,
+  getGetExtractRefreshTaskTool,
+  getCreateExtractRefreshTaskTool,
+  getRunExtractRefreshTaskTool,
   getListJobsTool,
   getListUsersTool,
   getUpdateUserTool,
@@ -76,6 +85,9 @@ export const webToolFactories = [
   getGetViewImageTool,
   getListWorkbooksTool,
   getListProjectsTool,
+  getCreateProjectTool,
+  getUpdateProjectTool,
+  getDeleteProjectTool,
   getListViewsTool,
   getListCustomViewsTool,
   getGetCustomViewDataTool,
