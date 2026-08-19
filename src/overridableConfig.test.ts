@@ -61,6 +61,8 @@ describe('OverridableConfig', () => {
         'list-workbooks',
         'get-workbook',
         'download-workbook',
+        'unpack-twbx',
+        'read-extracted-file',
       ]);
     });
 
@@ -80,6 +82,8 @@ describe('OverridableConfig', () => {
         'list-workbooks',
         'get-workbook',
         'download-workbook',
+        'unpack-twbx',
+        'read-extracted-file',
       ]);
     });
 

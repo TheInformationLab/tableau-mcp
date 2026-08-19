@@ -81,7 +81,10 @@ describe('unpackTwbxTool', () => {
 
   it('should reject a Zip Slip path traversal entry', async () => {
     const zip = new AdmZip();
-    zip.addFile('../evil.txt', Buffer.from('pwned'));
+    // adm-zip's addFile() sanitizes leading '../', so mutate entryName after adding to
+    // construct a real Zip Slip payload that survives round-tripping through the archive.
+    zip.addFile('placeholder.txt', Buffer.from('pwned'));
+    zip.getEntries()[0].entryName = '../evil.txt';
     const twbxPath = path.join(tmpDir, 'evil.twbx');
     zip.writeZip(twbxPath);
     const extractTo = path.join(tmpDir, 'out');

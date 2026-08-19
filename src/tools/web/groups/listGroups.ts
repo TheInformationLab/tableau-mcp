@@ -73,13 +73,15 @@ export const getListGroupsTool = (server: WebMcpServer): WebTool<typeof paramsSc
     },
     callback: async ({ filter, pageNumber, limit }, extra): Promise<CallToolResult> => {
       const configWithOverrides = await extra.getConfigWithOverrides();
-      const validatedFilter = filter ? parseAndValidateGroupsFilterString(filter) : undefined;
       const maxResultLimit = configWithOverrides.getMaxResultLimit(listGroupsTool.name);
 
       return await listGroupsTool.logAndExecute({
         extra,
         args: { filter, pageNumber, limit },
         callback: async () => {
+          // Parse the filter INSIDE the executed callback so an invalid filter surfaces
+          // as a clean `isError` tool result rather than an uncaught ZodError throw.
+          const validatedFilter = filter ? parseAndValidateGroupsFilterString(filter) : undefined;
           const msg = getPageExceedsLimitMessage({ pageNumber, maxResultLimit });
           if (msg) return new PageExceedsLimitError(msg).toErr();
 

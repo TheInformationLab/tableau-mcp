@@ -27,6 +27,13 @@ const TOOLS_WITHOUT_API_SCOPES_WITH_PASSTHROUGH_GUARD: ReadonlyArray<WebToolName
   // Staged workbook upload URL creation: no Tableau REST API call. The tool callback explicitly
   // returns an error for Passthrough auth before issuing a signed upload URL.
   'request-workbook-upload',
+  // TIL workbook extraction tools: pure local filesystem operations. They read a .twbx from disk
+  // and unpack/read files that the tool code itself decides where to place. They never touch
+  // `tableauAuthInfo`, never call the Tableau REST API, and never emit auth-derived data — so
+  // there is no passthrough-auth exposure to gate. MCP scope `tableau:mcp:workbook:extract`
+  // still gates who may call them.
+  'unpack-twbx',
+  'read-extracted-file',
 ];
 
 describe('passthroughAuthMiddleware', () => {
