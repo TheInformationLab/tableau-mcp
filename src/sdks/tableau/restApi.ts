@@ -17,6 +17,7 @@ import {
 import ContentExplorationMethods from './methods/contentExplorationMethods.js';
 import DatasourcesMethods from './methods/datasourcesMethods.js';
 import FlowsMethods from './methods/flowsMethods.js';
+import GroupsMethods from './methods/groupsMethods.js';
 import JobsMethods from './methods/jobsMethods.js';
 import McpSettingsMethods from './methods/mcpSettingsMethods.js';
 import MetadataMethods from './methods/metadataMethods.js';
@@ -180,6 +181,15 @@ export class RestApi {
     });
     this._addInterceptors(RestApi.baseUrl, flowsMethods.interceptors);
     return flowsMethods;
+  }
+
+  get groupsMethods(): GroupsMethods {
+    const groupsMethods = new GroupsMethods(RestApi.baseUrl, this.creds, {
+      timeout: this._maxRequestTimeoutMs,
+      signal: this._signal,
+    });
+    this._addInterceptors(RestApi.baseUrl, groupsMethods.interceptors);
+    return groupsMethods;
   }
 
   get metadataMethods(): MetadataMethods {

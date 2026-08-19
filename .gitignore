@@ -47,3 +47,7 @@ src/web/apps/dist/
 *.tsv
 stale-*.md
 /logs/
+
+# Local MCP client test config with real credentials - never commit
+config.node.json
+config.*.local.json

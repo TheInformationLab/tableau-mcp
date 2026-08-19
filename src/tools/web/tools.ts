@@ -15,6 +15,13 @@ import { getListFlowsTool } from './flows/listFlows/listFlows.js';
 import { getListFlowTasksTool } from './flows/listFlowTasks/listFlowTasks.js';
 import { getGetDatasourceMetadataTool } from './getDatasourceMetadata/getDatasourceMetadata.js';
 import { getEmbedTokenTool } from './getEmbedToken/getEmbedToken.js';
+import { getAddUserToGroupTool } from './groups/addUserToGroup.js';
+import { getCreateGroupTool } from './groups/createGroup.js';
+import { getDeleteGroupTool } from './groups/deleteGroup.js';
+import { getListGroupsTool } from './groups/listGroups.js';
+import { getListUsersInGroupTool } from './groups/listUsersInGroup.js';
+import { getRemoveUserFromGroupTool } from './groups/removeUserFromGroup.js';
+import { getUpdateGroupTool } from './groups/updateGroup.js';
 import { getListJobsTool } from './jobs/listJobs.js';
 import { getCreateProjectTool } from './projects/createProject.js';
 import { getDeleteProjectTool } from './projects/deleteProject.js';
@@ -33,6 +40,10 @@ import { getRecordEventTool } from './recordEvent/recordEvent.js';
 import { getRenderInteractiveVizTool } from './renderInteractiveViz/renderInteractiveViz.js';
 import { getResetConsentTool } from './resetConsent/resetConsent.js';
 import { getRevokeAccessTokenTool } from './revokeAccessToken/revokeAccessToken.js';
+import { getCreateUserTool } from './users/createUser.js';
+import { getDeleteUserTool } from './users/deleteUser.js';
+import { getGetUserTool } from './users/getUser.js';
+import { getListGroupsForUserTool } from './users/listGroupsForUser.js';
 import { getListUsersTool } from './users/listUsers.js';
 import { getUpdateUserTool } from './users/updateUser.js';
 import { getGetCustomViewDataTool } from './views/getCustomViewData.js';
@@ -98,4 +109,15 @@ export const webToolFactories = [
   getQueryAdminInsightsTool,
   getDeleteContentTool,
   getConfirmDeleteContentTool,
+  getGetUserTool,
+  getCreateUserTool,
+  getDeleteUserTool,
+  getListGroupsForUserTool,
+  getListGroupsTool,
+  getCreateGroupTool,
+  getUpdateGroupTool,
+  getDeleteGroupTool,
+  getListUsersInGroupTool,
+  getAddUserToGroupTool,
+  getRemoveUserFromGroupTool,
 ];

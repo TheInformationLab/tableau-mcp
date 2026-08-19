@@ -3,6 +3,7 @@ import { Zodios } from '@zodios/core';
 import { AxiosRequestConfig } from '../../../utils/axios.js';
 import { usersApis } from '../apis/usersApi.js';
 import { RestApiCredentials } from '../restApi.js';
+import { Group } from '../types/group.js';
 import { Pagination } from '../types/pagination.js';
 import { User } from '../types/user.js';
 import AuthenticatedMethods from './authenticatedMethods.js';
@@ -126,5 +127,97 @@ export default class UsersMethods extends AuthenticatedMethods<typeof usersApis>
       },
     );
     return user;
+  };
+
+  /**
+   * Adds a user to the specified site.
+   *
+   * Required scopes (Tableau Cloud): `tableau:users:create`
+   *
+   * @param siteId - The Tableau site ID
+   * @param user - The user details
+   * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#add_user_to_site
+   */
+  createUser = async ({
+    siteId,
+    user,
+  }: {
+    siteId: string;
+    user: {
+      name: string;
+      siteRole: string;
+      authSetting?: string;
+    };
+  }): Promise<User> => {
+    const userData = {
+      name: user.name,
+      siteRole: user.siteRole,
+      ...(user.authSetting !== undefined ? { authSetting: user.authSetting } : {}),
+    };
+
+    const { user: createdUser } = await this._apiClient.createUser(
+      { user: userData },
+      { params: { siteId }, ...this.authHeader },
+    );
+    return createdUser;
+  };
+
+  /**
+   * Removes a user from the specified site.
+   *
+   * Required scopes (Tableau Cloud): `tableau:users:delete`
+   *
+   * @param siteId - The Tableau site ID
+   * @param userId - The user ID
+   * @param mapAssetsTo - Optional user ID to reassign content ownership to
+   * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#remove_user_from_site
+   */
+  deleteUser = async ({
+    siteId,
+    userId,
+    mapAssetsTo,
+  }: {
+    siteId: string;
+    userId: string;
+    mapAssetsTo?: string;
+  }): Promise<void> => {
+    await this._apiClient.deleteUser(undefined, {
+      params: { siteId, userId },
+      queries: { mapAssetsTo },
+      ...this.authHeader,
+    });
+  };
+
+  /**
+   * Returns a list of groups that the specified user belongs to.
+   *
+   * Required scopes (Tableau Cloud): `tableau:groups:read`
+   *
+   * @param siteId - The Tableau site ID
+   * @param userId - The user ID
+   * @param pageSize - Number of items per page
+   * @param pageNumber - Page offset
+   * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_users_and_groups.htm#get_groups_for_a_user
+   */
+  listGroupsForUser = async ({
+    siteId,
+    userId,
+    pageSize,
+    pageNumber,
+  }: {
+    siteId: string;
+    userId: string;
+    pageSize?: number;
+    pageNumber?: number;
+  }): Promise<{ groups: Group[]; pagination?: Pagination }> => {
+    const response = await this._apiClient.listGroupsForUser({
+      params: { siteId, userId },
+      queries: { pageSize, pageNumber },
+      ...this.authHeader,
+    });
+    return {
+      groups: response.groups.group,
+      pagination: response.pagination,
+    };
   };
 }
