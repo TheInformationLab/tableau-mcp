@@ -21,6 +21,7 @@ import GroupsMethods from './methods/groupsMethods.js';
 import JobsMethods from './methods/jobsMethods.js';
 import McpSettingsMethods from './methods/mcpSettingsMethods.js';
 import MetadataMethods from './methods/metadataMethods.js';
+import PermissionsMethods from './methods/permissionsMethods.js';
 import ProjectsMethods from './methods/projectsMethods.js';
 import PulseMethods from './methods/pulseMethods.js';
 import { AuthenticatedServerMethods, ServerMethods } from './methods/serverMethods.js';
@@ -200,6 +201,15 @@ export class RestApi {
     });
     this._addInterceptors(baseUrl, metadataMethods.interceptors);
     return metadataMethods;
+  }
+
+  get permissionsMethods(): PermissionsMethods {
+    const permissionsMethods = new PermissionsMethods(RestApi.baseUrl, this.creds, {
+      timeout: this._maxRequestTimeoutMs,
+      signal: this._signal,
+    });
+    this._addInterceptors(RestApi.baseUrl, permissionsMethods.interceptors);
+    return permissionsMethods;
   }
 
   get projectsMethods(): ProjectsMethods {

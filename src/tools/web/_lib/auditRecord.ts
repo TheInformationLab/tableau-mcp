@@ -41,8 +41,9 @@ export const auditRecordSchema = z.object({
     project: z.string().optional(),
     owner: z.string().optional(),
     // 'user' is used by update-user / delete-user. 'group' by delete-group. 'project' by
-    // delete-project. All are retained so parsers stay stable across additions.
-    kind: z.enum(['datasource', 'workbook', 'extract-refresh-task', 'user', 'project', 'group']),
+    // delete-project. 'permission' by the permissions-mutating tools (add-permissions,
+    // update-default-permissions, delete-permission, delete-default-permission).
+    kind: z.enum(['datasource', 'workbook', 'extract-refresh-task', 'user', 'project', 'group', 'permission']),
   }),
   confirmationEvidence: z.object({
     kind: z.enum(['tag', 'registry-nonce', 'none']),

@@ -59,7 +59,7 @@ export interface MutationTarget {
   name?: string;
   project?: string;
   owner?: string;
-  kind: 'datasource' | 'workbook' | 'extract-refresh-task' | 'user' | 'project' | 'group';
+  kind: 'datasource' | 'workbook' | 'extract-refresh-task' | 'user' | 'project' | 'group' | 'permission';
 }
 
 /** What the guard hands back to the tool on success so it can build its tool-specific response. */

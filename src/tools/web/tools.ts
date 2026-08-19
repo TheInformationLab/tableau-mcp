@@ -23,6 +23,15 @@ import { getListUsersInGroupTool } from './groups/listUsersInGroup.js';
 import { getRemoveUserFromGroupTool } from './groups/removeUserFromGroup.js';
 import { getUpdateGroupTool } from './groups/updateGroup.js';
 import { getListJobsTool } from './jobs/listJobs.js';
+import { getAddPermissionsTool } from './permissions/addPermissions.js';
+import { getDeleteDefaultPermissionTool } from './permissions/deleteDefaultPermission.js';
+import { getDeletePermissionTool } from './permissions/deletePermission.js';
+import { getListDatasourcePermissionsTool } from './permissions/listDatasourcePermissions.js';
+import { getListDefaultPermissionsTool } from './permissions/listDefaultPermissions.js';
+import { getListProjectPermissionsTool } from './permissions/listProjectPermissions.js';
+import { getListViewPermissionsTool } from './permissions/listViewPermissions.js';
+import { getListWorkbookPermissionsTool } from './permissions/listWorkbookPermissions.js';
+import { getUpdateDefaultPermissionsTool } from './permissions/updateDefaultPermissions.js';
 import { getCreateProjectTool } from './projects/createProject.js';
 import { getDeleteProjectTool } from './projects/deleteProject.js';
 import { getListProjectsTool } from './projects/listProjects.js';
@@ -56,7 +65,9 @@ import { getListViewsTool } from './views/listViews.js';
 import { getDownloadWorkbookTool } from './workbooks/downloadWorkbook.js';
 import { getGetWorkbookTool } from './workbooks/getWorkbook.js';
 import { getListWorkbooksTool } from './workbooks/listWorkbooks.js';
+import { getReadExtractedFileTool } from './workbooks/readExtractedFile.js';
 import { getRequestWorkbookUploadTool } from './workbooks/requestWorkbookUpload.js';
+import { getUnpackTwbxTool } from './workbooks/unpackTwbx.js';
 import { getValidateUploadAndPublishWorkbookTool } from './workbooks/validateUploadAndPublishWorkbook.js';
 
 export const webToolFactories = [
@@ -109,6 +120,7 @@ export const webToolFactories = [
   getQueryAdminInsightsTool,
   getDeleteContentTool,
   getConfirmDeleteContentTool,
+  // Users + Groups (TIL port)
   getGetUserTool,
   getCreateUserTool,
   getDeleteUserTool,
@@ -120,4 +132,17 @@ export const webToolFactories = [
   getListUsersInGroupTool,
   getAddUserToGroupTool,
   getRemoveUserFromGroupTool,
+  // Permissions (TIL port)
+  getListProjectPermissionsTool,
+  getListWorkbookPermissionsTool,
+  getListDatasourcePermissionsTool,
+  getListViewPermissionsTool,
+  getListDefaultPermissionsTool,
+  getAddPermissionsTool,
+  getUpdateDefaultPermissionsTool,
+  getDeletePermissionTool,
+  getDeleteDefaultPermissionTool,
+  // Workbook custom (TIL port)
+  getUnpackTwbxTool,
+  getReadExtractedFileTool,
 ];
