@@ -18,7 +18,7 @@ type GranteeCapabilitiesInput = Array<{
  * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_permissions.htm
  *
  * Notes on request body shape (see fork commit 44036360):
- *   Every add*/update* endpoint sends `permissions.granteeCapabilities` as a FLAT array,
+ *   Every add* / update* endpoint sends `permissions.granteeCapabilities` as a FLAT array,
  *   NOT a nested `granteeCapabilities.granteeCapabilities` object. The prior nested shape was
  *   silently accepted by some servers and rejected by others; the flat shape is the one Tableau's
  *   REST API documents.
