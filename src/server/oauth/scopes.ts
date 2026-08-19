@@ -49,6 +49,8 @@ export type TableauApiScope =
   | 'tableau:tasks:read'
   | 'tableau:tasks:delete'
   | 'tableau:tasks:write'
+  | 'tableau:tasks:create'
+  | 'tableau:tasks:run'
   | 'tableau:workbook_tags:update'
   | 'tableau:workbooks:download'
   | 'tableau:workbooks:delete'
@@ -58,7 +60,10 @@ export type TableauApiScope =
   | 'tableau:jobs:read'
   | 'tableau:flow_tasks:read'
   | 'tableau:users:read'
-  | 'tableau:users:update';
+  | 'tableau:users:update'
+  | 'tableau:projects:create'
+  | 'tableau:projects:update'
+  | 'tableau:projects:delete';
 
 /**
  * Default scopes supported by the MCP server
@@ -195,6 +200,43 @@ const toolScopeMap: Record<
   'list-projects': {
     mcp: ['tableau:mcp:content:read'],
     api: new Set(['tableau:content:read', 'tableau:mcp_site_settings:read']),
+  },
+  'create-project': {
+    mcp: ['tableau:mcp:content:read'],
+    api: new Set([
+      'tableau:projects:create',
+      'tableau:users:read',
+      ...RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES,
+    ]),
+  },
+  'update-project': {
+    mcp: ['tableau:mcp:content:read'],
+    api: new Set([
+      'tableau:projects:update',
+      'tableau:users:read',
+      ...RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES,
+    ]),
+  },
+  'delete-project': {
+    mcp: ['tableau:mcp:content:delete'],
+    api: new Set([
+      'tableau:projects:delete',
+      'tableau:content:read',
+      'tableau:users:read',
+      ...RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES,
+    ]),
+  },
+  'get-extract-refresh-task': {
+    mcp: ['tableau:mcp:tasks:read'],
+    api: new Set(['tableau:tasks:read', 'tableau:users:read']),
+  },
+  'create-extract-refresh-task': {
+    mcp: ['tableau:mcp:tasks:write'],
+    api: new Set(['tableau:tasks:create', 'tableau:users:read']),
+  },
+  'run-extract-refresh-task': {
+    mcp: ['tableau:mcp:tasks:write'],
+    api: new Set(['tableau:tasks:run', 'tableau:users:read']),
   },
   'list-views': {
     mcp: ['tableau:mcp:view:read'],
@@ -402,6 +444,12 @@ async function getEnabledToolNames(): Promise<Set<WebToolName>> {
     enabledTools.delete('update-user');
     enabledTools.delete('query-admin-insights');
     enabledTools.delete('delete-content');
+    enabledTools.delete('create-project');
+    enabledTools.delete('update-project');
+    enabledTools.delete('delete-project');
+    enabledTools.delete('get-extract-refresh-task');
+    enabledTools.delete('create-extract-refresh-task');
+    enabledTools.delete('run-extract-refresh-task');
   }
 
   // Remove the MCP-Apps-only tools if the mcp-apps feature is disabled. The confirm-* tools are the

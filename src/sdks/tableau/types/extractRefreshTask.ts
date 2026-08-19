@@ -229,3 +229,55 @@ export const updateCloudExtractRefreshTaskResponseSchema = z.object({
   extractRefresh: extractRefreshTaskSchema.partial().optional(),
   schedule: extractRefreshScheduleSchema.optional(),
 });
+
+/**
+ * Body schema for `Create Extract Refresh Task` (Tableau Cloud API 3.20+). Tableau accepts a
+ * frequency plus optional frequencyDetails; the fork's original create tool relied on the same
+ * `frequencyDetails` shape as list/update responses, so this schema mirrors it (permissive) to
+ * avoid a v1.x → v4 regression on caller payloads that already worked.
+ */
+export const createExtractRefreshTaskFrequencyDetailsSchema = z.object({
+  start: z.string().optional(),
+  end: z.string().optional(),
+  intervals: z
+    .object({
+      interval: z
+        .array(
+          z.object({
+            weekDay: z.string().optional(),
+            monthDay: z.union([z.string(), z.number()]).optional(),
+            hours: z.coerce.number().optional(),
+            minutes: z.coerce.number().optional(),
+          }),
+        )
+        .optional(),
+    })
+    .optional(),
+});
+
+export type CreateExtractRefreshTaskFrequencyDetails = z.infer<
+  typeof createExtractRefreshTaskFrequencyDetailsSchema
+>;
+
+/**
+ * Response body shape for `Create Extract Refresh Task`. Tableau returns `extractRefresh` and
+ * `schedule` as siblings.
+ */
+export const createExtractRefreshTaskResponseSchema = z.object({
+  extractRefresh: extractRefreshTaskSchema.partial().optional(),
+  schedule: extractRefreshScheduleSchema.optional(),
+});
+
+/**
+ * Job schema — returned by `Run Extract Refresh Task Now` and other async task-launch endpoints.
+ * Only the fields the fork's create/run tools surface are typed; anything else Tableau returns is
+ * ignored (Zod is permissive on unknown keys).
+ */
+export const jobSchema = z.object({
+  id: z.string(),
+  mode: z.string().optional(),
+  type: z.string().optional(),
+  createdAt: z.string().optional(),
+});
+
+export type Job = z.infer<typeof jobSchema>;

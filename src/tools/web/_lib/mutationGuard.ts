@@ -59,7 +59,7 @@ export interface MutationTarget {
   name?: string;
   project?: string;
   owner?: string;
-  kind: 'datasource' | 'workbook' | 'extract-refresh-task' | 'user';
+  kind: 'datasource' | 'workbook' | 'extract-refresh-task' | 'user' | 'project';
 }
 
 /** What the guard hands back to the tool on success so it can build its tool-specific response. */
@@ -258,6 +258,8 @@ function targetKindHint(tool: WebToolName): MutationTarget['kind'] {
       return 'extract-refresh-task';
     case 'update-user':
       return 'user';
+    case 'delete-project':
+      return 'project';
     default:
       return 'datasource';
   }

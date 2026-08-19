@@ -51,4 +51,111 @@ export default class ProjectsMethods extends AuthenticatedMethods<typeof project
       projects: response.projects.project ?? [],
     };
   };
+
+  /**
+   * Creates a new project on the specified site.
+   *
+   * Required scopes (Tableau Cloud): `tableau:projects:create`
+   *
+   * @param siteId - The Tableau site ID
+   * @param project - The project details
+   * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_projects.htm#create_project
+   */
+  createProject = async ({
+    siteId,
+    project,
+  }: {
+    siteId: string;
+    project: {
+      name: string;
+      description?: string;
+      contentPermissions?: 'LockedToProject' | 'ManagedByOwner' | 'LockedToProjectWithoutNested';
+      parentProjectId?: string;
+    };
+  }): Promise<Project> => {
+    // Only send fields the caller supplied — Tableau treats a missing key differently
+    // from an explicit undefined/null in the XML payload some deployments produce.
+    const projectData = {
+      name: project.name,
+      ...(project.description !== undefined ? { description: project.description } : {}),
+      ...(project.contentPermissions !== undefined
+        ? { contentPermissions: project.contentPermissions }
+        : {}),
+      ...(project.parentProjectId !== undefined
+        ? { parentProjectId: project.parentProjectId }
+        : {}),
+    };
+
+    const response = await this._apiClient.createProject(
+      { project: projectData },
+      { params: { siteId }, ...this.authHeader },
+    );
+    return response.project;
+  };
+
+  /**
+   * Updates the specified project.
+   *
+   * Required scopes (Tableau Cloud): `tableau:projects:update`
+   *
+   * @param siteId - The Tableau site ID
+   * @param projectId - The ID (LUID) of the project
+   * @param project - The project details to update
+   * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_projects.htm#update_project
+   */
+  updateProject = async ({
+    siteId,
+    projectId,
+    project,
+  }: {
+    siteId: string;
+    projectId: string;
+    project: {
+      name?: string;
+      description?: string;
+      contentPermissions?: 'LockedToProject' | 'ManagedByOwner' | 'LockedToProjectWithoutNested';
+      parentProjectId?: string;
+      ownerId?: string;
+    };
+  }): Promise<Project> => {
+    const projectData = {
+      ...(project.name !== undefined ? { name: project.name } : {}),
+      ...(project.description !== undefined ? { description: project.description } : {}),
+      ...(project.contentPermissions !== undefined
+        ? { contentPermissions: project.contentPermissions }
+        : {}),
+      ...(project.parentProjectId !== undefined
+        ? { parentProjectId: project.parentProjectId }
+        : {}),
+      ...(project.ownerId !== undefined ? { ownerId: project.ownerId } : {}),
+    };
+
+    const response = await this._apiClient.updateProject(
+      { project: projectData },
+      { params: { siteId, projectId }, ...this.authHeader },
+    );
+    return response.project;
+  };
+
+  /**
+   * Deletes the specified project.
+   *
+   * Required scopes (Tableau Cloud): `tableau:projects:delete`
+   *
+   * @param siteId - The Tableau site ID
+   * @param projectId - The ID (LUID) of the project
+   * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_projects.htm#delete_project
+   */
+  deleteProject = async ({
+    siteId,
+    projectId,
+  }: {
+    siteId: string;
+    projectId: string;
+  }): Promise<void> => {
+    await this._apiClient.deleteProject(undefined, {
+      params: { siteId, projectId },
+      ...this.authHeader,
+    });
+  };
 }

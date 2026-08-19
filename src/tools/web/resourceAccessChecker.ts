@@ -102,6 +102,30 @@ class ResourceAccessChecker {
     return this._testOverrides.tags ?? (await extra.getConfigWithOverrides()).boundedContext.tags;
   }
 
+  async isProjectAllowed({
+    projectId,
+    extra,
+  }: {
+    projectId: string;
+    extra: TableauWebRequestHandlerExtra;
+  }): Promise<AllowedResult> {
+    const allowedProjectIds = await this.getAllowedProjectIds({ extra });
+    // No bounded-context filter configured for projects → allow.
+    if (!allowedProjectIds) {
+      return { allowed: true };
+    }
+    if (allowedProjectIds.has(projectId)) {
+      return { allowed: true };
+    }
+    return {
+      allowed: false,
+      message: [
+        'The set of allowed projects that can be queried is limited by the server configuration.',
+        `The project with LUID ${projectId} is not in the allowed set.`,
+      ].join(' '),
+    };
+  }
+
   async isDatasourceAllowed({
     datasourceLuid,
     extra,
