@@ -30,7 +30,9 @@ export type McpScope =
   | 'tableau:mcp:jobs:read'
   | 'tableau:mcp:content:delete'
   | 'tableau:mcp:users:read'
-  | 'tableau:mcp:users:write';
+  | 'tableau:mcp:users:write'
+  | 'tableau:mcp:groups:read'
+  | 'tableau:mcp:groups:write';
 
 export type TableauApiScope =
   | 'tableau:content:read'
@@ -58,7 +60,13 @@ export type TableauApiScope =
   | 'tableau:jobs:read'
   | 'tableau:flow_tasks:read'
   | 'tableau:users:read'
-  | 'tableau:users:update';
+  | 'tableau:users:update'
+  | 'tableau:users:create'
+  | 'tableau:users:delete'
+  | 'tableau:groups:read'
+  | 'tableau:groups:create'
+  | 'tableau:groups:update'
+  | 'tableau:groups:delete';
 
 /**
  * Default scopes supported by the MCP server
@@ -81,6 +89,8 @@ export const DEFAULT_SCOPES_SUPPORTED: ReadonlyArray<McpScope> = [
   'tableau:mcp:flow:read',
   'tableau:mcp:pulse:read',
   'tableau:mcp:insight:create',
+  'tableau:mcp:groups:read',
+  'tableau:mcp:groups:write',
 ];
 
 export const RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES: ReadonlyArray<TableauApiScope> = [
@@ -382,6 +392,50 @@ const toolScopeMap: Record<
       ...RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES,
     ]),
   },
+  'get-user': {
+    mcp: ['tableau:mcp:users:read'],
+    api: new Set(['tableau:users:read']),
+  },
+  'create-user': {
+    mcp: ['tableau:mcp:users:write'],
+    api: new Set(['tableau:users:create', 'tableau:users:read']),
+  },
+  'delete-user': {
+    mcp: ['tableau:mcp:users:write'],
+    api: new Set(['tableau:users:delete', 'tableau:users:read']),
+  },
+  'list-groups-for-user': {
+    mcp: ['tableau:mcp:groups:read'],
+    api: new Set(['tableau:groups:read', 'tableau:users:read']),
+  },
+  'list-groups': {
+    mcp: ['tableau:mcp:groups:read'],
+    api: new Set(['tableau:groups:read', 'tableau:users:read']),
+  },
+  'create-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:create', 'tableau:users:read']),
+  },
+  'update-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:update', 'tableau:users:read']),
+  },
+  'delete-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:delete', 'tableau:groups:read', 'tableau:users:read']),
+  },
+  'list-users-in-group': {
+    mcp: ['tableau:mcp:groups:read'],
+    api: new Set(['tableau:groups:read', 'tableau:users:read']),
+  },
+  'add-user-to-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:update', 'tableau:users:read']),
+  },
+  'remove-user-from-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:update', 'tableau:users:read']),
+  },
 };
 
 async function getEnabledToolNames(): Promise<Set<WebToolName>> {
@@ -402,6 +456,18 @@ async function getEnabledToolNames(): Promise<Set<WebToolName>> {
     enabledTools.delete('update-user');
     enabledTools.delete('query-admin-insights');
     enabledTools.delete('delete-content');
+    // Users + Groups admin-only surface (TIL fork port).
+    enabledTools.delete('get-user');
+    enabledTools.delete('create-user');
+    enabledTools.delete('delete-user');
+    enabledTools.delete('list-groups-for-user');
+    enabledTools.delete('list-groups');
+    enabledTools.delete('create-group');
+    enabledTools.delete('update-group');
+    enabledTools.delete('delete-group');
+    enabledTools.delete('list-users-in-group');
+    enabledTools.delete('add-user-to-group');
+    enabledTools.delete('remove-user-from-group');
   }
 
   // Remove the MCP-Apps-only tools if the mcp-apps feature is disabled. The confirm-* tools are the
