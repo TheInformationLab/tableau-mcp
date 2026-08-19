@@ -11,7 +11,10 @@ import {
 import { RestApiCredentials } from '../restApi.js';
 import { parseTableauApiError } from '../tableauApiError.js';
 import {
+  CreateExtractRefreshTaskFrequencyDetails,
+  ExtractRefreshSchedule,
   ExtractRefreshTask,
+  Job,
   UpdateCloudExtractRefreshSchedule,
 } from '../types/extractRefreshTask.js';
 import { FlowRunTask } from '../types/flowRunTask.js';
@@ -132,6 +135,118 @@ export default class TasksMethods extends AuthenticatedMethods<typeof tasksApis>
       }
       return new Err({ type: 'unknown', message: getExceptionMessage(error) });
     }
+  };
+
+  /**
+   * Gets details for a specific extract refresh task, including the schedule and consecutive
+   * failure count. Unlike the list endpoint (which returns `{ tasks: { task: [{ extractRefresh
+   * ... }] } }`), the single-task endpoint returns just `{ extractRefresh: ... }` — this method
+   * merges the response into a single `ExtractRefreshTask` record so callers can treat get/list
+   * outputs uniformly.
+   *
+   * Required scopes (Tableau Cloud): `tableau:tasks:read`
+   *
+   * @param siteId - The Tableau site ID
+   * @param taskId - The extract refresh task ID
+   * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#get_extract_refresh_task1
+   */
+  getExtractRefreshTask = async ({
+    siteId,
+    taskId,
+  }: {
+    siteId: string;
+    taskId: string;
+  }): Promise<ExtractRefreshTask> => {
+    const response = await this._apiClient.getExtractRefreshTask({
+      params: { siteId, taskId },
+      ...this.authHeader,
+    });
+    // Fall back to the requested taskId when Tableau's response omits it — the endpoint's exact
+    // payload varies by site (schedule sometimes nested inside extractRefresh, sometimes sibling)
+    // and we don't want a missing field to surface as a Zod parse error to the caller.
+    const extractRefresh = response.extractRefresh ?? {};
+    // Some deployments return `schedule` as a top-level sibling; merge it in when extractRefresh
+    // does not already carry it, so the returned shape matches list-extract-refresh-tasks.
+    const schedule =
+      (extractRefresh.schedule as ExtractRefreshSchedule | undefined) ??
+      (response.schedule as ExtractRefreshSchedule | undefined);
+    return {
+      ...extractRefresh,
+      id: extractRefresh.id ?? taskId,
+      ...(schedule !== undefined ? { schedule } : {}),
+    };
+  };
+
+  /**
+   * Creates a new extract refresh task for a workbook or datasource on Tableau Cloud.
+   *
+   * Required scopes (Tableau Cloud): `tableau:tasks:create`
+   *
+   * @param siteId - The Tableau site ID
+   * @param type - The refresh type ("FullRefresh" | "IncrementalRefresh")
+   * @param workbookId - Workbook LUID (exactly one of workbookId or datasourceId)
+   * @param datasourceId - Datasource LUID (exactly one of workbookId or datasourceId)
+   * @param frequency - Schedule frequency ("Hourly" | "Daily" | "Weekly" | "Monthly")
+   * @param frequencyDetails - Optional detailed timing configuration
+   * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#create_extract_refresh_task1
+   */
+  createExtractRefreshTask = async ({
+    siteId,
+    type,
+    workbookId,
+    datasourceId,
+    frequency,
+    frequencyDetails,
+  }: {
+    siteId: string;
+    type: string;
+    workbookId?: string;
+    datasourceId?: string;
+    frequency: string;
+    frequencyDetails?: CreateExtractRefreshTaskFrequencyDetails;
+  }): Promise<{ extractRefresh: Partial<ExtractRefreshTask>; schedule?: ExtractRefreshSchedule }> => {
+    const response = await this._apiClient.createExtractRefreshTask(
+      {
+        extractRefresh: {
+          type,
+          ...(workbookId ? { workbook: { id: workbookId } } : {}),
+          ...(datasourceId ? { datasource: { id: datasourceId } } : {}),
+        },
+        schedule: {
+          frequency,
+          ...(frequencyDetails ? { frequencyDetails } : {}),
+        },
+      },
+      { params: { siteId }, ...this.authHeader },
+    );
+    return {
+      extractRefresh: response.extractRefresh ?? {},
+      schedule: response.schedule,
+    };
+  };
+
+  /**
+   * Runs an extract refresh task immediately, outside of its normal schedule. Returns a Job
+   * whose `id` can be polled via list-jobs / job-related endpoints.
+   *
+   * Required scopes (Tableau Cloud): `tableau:tasks:run`
+   *
+   * @param siteId - The Tableau site ID
+   * @param taskId - The extract refresh task ID
+   * @link https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#run_extract_refresh_task
+   */
+  runExtractRefreshTask = async ({
+    siteId,
+    taskId,
+  }: {
+    siteId: string;
+    taskId: string;
+  }): Promise<Job> => {
+    const response = await this._apiClient.runExtractRefreshTask(
+      {},
+      { params: { siteId, taskId }, ...this.authHeader },
+    );
+    return response.job;
   };
 
   /**
