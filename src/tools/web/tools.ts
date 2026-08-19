@@ -13,6 +13,15 @@ import { getListFlowTasksTool } from './flows/listFlowTasks/listFlowTasks.js';
 import { getGetDatasourceMetadataTool } from './getDatasourceMetadata/getDatasourceMetadata.js';
 import { getEmbedTokenTool } from './getEmbedToken/getEmbedToken.js';
 import { getListJobsTool } from './jobs/listJobs.js';
+import { getAddPermissionsTool } from './permissions/addPermissions.js';
+import { getDeleteDefaultPermissionTool } from './permissions/deleteDefaultPermission.js';
+import { getDeletePermissionTool } from './permissions/deletePermission.js';
+import { getListDatasourcePermissionsTool } from './permissions/listDatasourcePermissions.js';
+import { getListDefaultPermissionsTool } from './permissions/listDefaultPermissions.js';
+import { getListProjectPermissionsTool } from './permissions/listProjectPermissions.js';
+import { getListViewPermissionsTool } from './permissions/listViewPermissions.js';
+import { getListWorkbookPermissionsTool } from './permissions/listWorkbookPermissions.js';
+import { getUpdateDefaultPermissionsTool } from './permissions/updateDefaultPermissions.js';
 import { getListProjectsTool } from './projects/listProjects.js';
 import { getGeneratePulseInsightBriefTool } from './pulse/generateInsightBrief/generatePulseInsightBriefTool.js';
 import { getGeneratePulseMetricValueInsightBundleTool } from './pulse/generateMetricValueInsightBundle/generatePulseMetricValueInsightBundleTool.js';
@@ -39,7 +48,9 @@ import { getListViewsTool } from './views/listViews.js';
 import { getDownloadWorkbookTool } from './workbooks/downloadWorkbook.js';
 import { getGetWorkbookTool } from './workbooks/getWorkbook.js';
 import { getListWorkbooksTool } from './workbooks/listWorkbooks.js';
+import { getReadExtractedFileTool } from './workbooks/readExtractedFile.js';
 import { getRequestWorkbookUploadTool } from './workbooks/requestWorkbookUpload.js';
+import { getUnpackTwbxTool } from './workbooks/unpackTwbx.js';
 import { getValidateUploadAndPublishWorkbookTool } from './workbooks/validateUploadAndPublishWorkbook.js';
 
 export const webToolFactories = [
@@ -86,4 +97,17 @@ export const webToolFactories = [
   getQueryAdminInsightsTool,
   getDeleteContentTool,
   getConfirmDeleteContentTool,
+  // Permissions (TIL port)
+  getListProjectPermissionsTool,
+  getListWorkbookPermissionsTool,
+  getListDatasourcePermissionsTool,
+  getListViewPermissionsTool,
+  getListDefaultPermissionsTool,
+  getAddPermissionsTool,
+  getUpdateDefaultPermissionsTool,
+  getDeletePermissionTool,
+  getDeleteDefaultPermissionTool,
+  // Workbook custom (TIL port)
+  getUnpackTwbxTool,
+  getReadExtractedFileTool,
 ];

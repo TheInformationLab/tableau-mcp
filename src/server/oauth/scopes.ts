@@ -30,7 +30,11 @@ export type McpScope =
   | 'tableau:mcp:jobs:read'
   | 'tableau:mcp:content:delete'
   | 'tableau:mcp:users:read'
-  | 'tableau:mcp:users:write';
+  | 'tableau:mcp:users:write'
+  | 'tableau:mcp:permissions:read'
+  | 'tableau:mcp:permissions:write'
+  | 'tableau:mcp:permissions:delete'
+  | 'tableau:mcp:workbook:extract';
 
 export type TableauApiScope =
   | 'tableau:content:read'
@@ -58,7 +62,10 @@ export type TableauApiScope =
   | 'tableau:jobs:read'
   | 'tableau:flow_tasks:read'
   | 'tableau:users:read'
-  | 'tableau:users:update';
+  | 'tableau:users:update'
+  | 'tableau:permissions:read'
+  | 'tableau:permissions:update'
+  | 'tableau:permissions:delete';
 
 /**
  * Default scopes supported by the MCP server
@@ -81,6 +88,10 @@ export const DEFAULT_SCOPES_SUPPORTED: ReadonlyArray<McpScope> = [
   'tableau:mcp:flow:read',
   'tableau:mcp:pulse:read',
   'tableau:mcp:insight:create',
+  'tableau:mcp:permissions:read',
+  'tableau:mcp:permissions:write',
+  'tableau:mcp:permissions:delete',
+  'tableau:mcp:workbook:extract',
 ];
 
 export const RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES: ReadonlyArray<TableauApiScope> = [
@@ -382,6 +393,53 @@ const toolScopeMap: Record<
       ...RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES,
     ]),
   },
+  // Permissions — TIL port. Reads are permissions:read; mutations require admin gate and route
+  // through guardMutation (see src/tools/web/permissions/).
+  'list-project-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'list-workbook-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'list-datasource-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'list-view-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'list-default-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'add-permissions': {
+    mcp: ['tableau:mcp:permissions:write'],
+    api: new Set(['tableau:permissions:update', 'tableau:users:read']),
+  },
+  'update-default-permissions': {
+    mcp: ['tableau:mcp:permissions:write'],
+    api: new Set(['tableau:permissions:update', 'tableau:users:read']),
+  },
+  'delete-permission': {
+    mcp: ['tableau:mcp:permissions:delete'],
+    api: new Set(['tableau:permissions:delete', 'tableau:users:read']),
+  },
+  'delete-default-permission': {
+    mcp: ['tableau:mcp:permissions:delete'],
+    api: new Set(['tableau:permissions:delete', 'tableau:users:read']),
+  },
+  // Workbook custom tools — TIL port. Pure filesystem operations; no Tableau REST calls.
+  'unpack-twbx': {
+    mcp: ['tableau:mcp:workbook:extract'],
+    api: new Set<TableauApiScope>(),
+  },
+  'read-extracted-file': {
+    mcp: ['tableau:mcp:workbook:extract'],
+    api: new Set<TableauApiScope>(),
+  },
 };
 
 async function getEnabledToolNames(): Promise<Set<WebToolName>> {
@@ -402,6 +460,12 @@ async function getEnabledToolNames(): Promise<Set<WebToolName>> {
     enabledTools.delete('update-user');
     enabledTools.delete('query-admin-insights');
     enabledTools.delete('delete-content');
+    // Permissions mutations are admin-only (they use assertAdmin + guardMutation). Reads
+    // remain available to any authenticated user with the permissions:read API scope.
+    enabledTools.delete('add-permissions');
+    enabledTools.delete('update-default-permissions');
+    enabledTools.delete('delete-permission');
+    enabledTools.delete('delete-default-permission');
   }
 
   // Remove the MCP-Apps-only tools if the mcp-apps feature is disabled. The confirm-* tools are the

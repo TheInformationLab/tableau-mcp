@@ -42,6 +42,17 @@ export const webToolNames = [
   'delete-content',
   'confirm-delete-content',
   'render-interactive-viz',
+  'list-project-permissions',
+  'list-workbook-permissions',
+  'list-datasource-permissions',
+  'list-view-permissions',
+  'list-default-permissions',
+  'add-permissions',
+  'update-default-permissions',
+  'delete-permission',
+  'delete-default-permission',
+  'unpack-twbx',
+  'read-extracted-file',
 ] as const;
 export type WebToolName = (typeof webToolNames)[number];
 
@@ -62,12 +73,19 @@ export const webToolGroupNames = [
   'mcp-apps',
   'admin-insights',
   'content',
+  'permissions',
 ] as const;
 export type WebToolGroupName = (typeof webToolGroupNames)[number];
 
 export const webToolGroups = {
   datasource: ['list-datasources', 'get-datasource-metadata', 'query-datasource'],
-  workbook: ['list-workbooks', 'get-workbook', 'download-workbook'],
+  workbook: [
+    'list-workbooks',
+    'get-workbook',
+    'download-workbook',
+    'unpack-twbx',
+    'read-extracted-file',
+  ],
   authoring: ['request-workbook-upload', 'validate-upload-and-publish-workbook'],
   project: ['list-projects'],
   view: [
@@ -102,6 +120,17 @@ export const webToolGroups = {
   'mcp-apps': ['get-embed-token', 'record-event', 'render-interactive-viz'],
   'admin-insights': ['query-admin-insights'],
   content: ['delete-content', 'confirm-delete-content'],
+  permissions: [
+    'list-project-permissions',
+    'list-workbook-permissions',
+    'list-datasource-permissions',
+    'list-view-permissions',
+    'list-default-permissions',
+    'add-permissions',
+    'update-default-permissions',
+    'delete-permission',
+    'delete-default-permission',
+  ],
 } as const satisfies Record<WebToolGroupName, Array<WebToolName>>;
 
 export function isWebToolName(value: unknown): value is WebToolName {
