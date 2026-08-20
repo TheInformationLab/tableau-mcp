@@ -2,7 +2,7 @@
 
 Custom tools this fork carries on top of upstream `tableau/tableau-mcp`, plus the shared files they modify. Read this before rebasing onto a new upstream release — it's the difference between a 30-minute chore and a rediscovery exercise.
 
-Current base: **upstream v4.5.2** → tag `til-v4.5.2-r1` on branch `til-v4-rebase`.
+Current base: **upstream v4.5.2** → tag `til-v4.5.2-r1` on branch `main`. (The old v1.13.10 fork tip is preserved on `archive/v1.13.10` for historical reference.)
 
 ## The 28 custom tools
 
@@ -104,17 +104,17 @@ If tests fail after a rebase, these files most often need a look:
 
 ## Rebase flow
 
-When upstream cuts a new tag (e.g. `v4.6.0`):
+`main` is the working branch — it always tracks the latest upstream tag plus TIL ports on top. When upstream cuts a new tag (e.g. `v4.6.0`):
 
-1. Fetch tags:
+1. Fetch upstream:
    ```bash
-   git fetch upstream --tags   # or: git fetch origin --tags if using a single origin
+   git fetch upstream --tags
    ```
-2. Cut a fresh branch from the tag:
+2. Cut a scratch branch from the new upstream tag:
    ```bash
-   git checkout -b til-v4.6-rebase v4.6.0
+   git checkout -b rebase/v4.6.0 v4.6.0
    ```
-3. Cherry-pick or rebase the TIL commits from `til-v4-rebase`. The port commits are cleanly grouped — you can identify them by:
+3. Cherry-pick or rebase the TIL port commits from `main`. The port commits are cleanly grouped — you can identify them by:
    - The three merge commits from the parallel port branches (`port/projects-extractrefresh`, `port/users-groups`, `port/permissions-workbooks`), or
    - The subsequent fix-up commits touching the 5 shared files above.
 4. Expect merge conflicts on the 5 shared files. Resolve by **unioning** the enums / registrations — never dropping TIL entries.
@@ -127,12 +127,16 @@ When upstream cuts a new tag (e.g. `v4.6.0`):
    npm test
    ```
 7. Build a Docker image locally and smoke-test against a Tableau site (list-projects + list-groups + list-project-permissions is the canary trio — proves web tools, admin gate, and the permissions port all work).
-8. Cut an annotated tag on the new head:
+8. Fast-forward `main` onto the rebased branch and cut an annotated tag:
    ```bash
+   git checkout main
+   git reset --hard rebase/v4.6.0        # only safe if rebase/v4.6.0 contains all TIL commits + the new upstream base
    git tag -a til-v4.6.0-r1 -m "TIL fork rebased onto upstream v4.6.0"
-   git push origin til-v4.6-rebase --tags
+   git push origin main --force-with-lease --tags
    ```
-9. Open a PR on `TheInformationLab/til-tableau-mcp` bumping `ref:` in `.github/workflows/docker-build.yml` to the new SHA.
+   (Force-push is expected here — `main` is a rebased line, not a merge line. Anyone else with a local checkout will need to `git reset --hard origin/main`.)
+9. Delete the scratch branch: `git branch -d rebase/v4.6.0`.
+10. Open a PR on `TheInformationLab/til-tableau-mcp` bumping `ref:` in `.github/workflows/docker-build.yml` to the new SHA.
 
 ## Cost by upstream release type
 
