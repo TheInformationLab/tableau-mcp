@@ -4,6 +4,7 @@ import * as path from 'path';
 import { Ok } from 'ts-results-es';
 import { z } from 'zod';
 
+import { getConfig } from '../../../config.js';
 import { UnknownError } from '../../../errors/mcpToolError.js';
 import { WebMcpServer } from '../../../server.web.js';
 import { fileExists, formatFileSize, TEMP_BASE } from '../../../utils/fileSystem.js';
@@ -49,9 +50,12 @@ function isPathAllowed(filePath: string): boolean {
 export const getReadExtractedFileTool = (
   server: WebMcpServer,
 ): WebTool<typeof paramsSchema> => {
+  const config = getConfig();
+
   const readExtractedFileTool = new WebTool({
     server,
     name: 'read-extracted-file',
+    disabled: !config.adminToolsEnabled,
     description: `
 Reads the contents of a text-based file from the MCP server's temp filesystem.
 

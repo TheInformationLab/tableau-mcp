@@ -5,6 +5,7 @@ import * as path from 'path';
 import { Ok } from 'ts-results-es';
 import { z } from 'zod';
 
+import { getConfig } from '../../../config.js';
 import { UnknownError } from '../../../errors/mcpToolError.js';
 import { WebMcpServer } from '../../../server.web.js';
 import {
@@ -14,6 +15,7 @@ import {
   fileExists,
   formatFileSize,
   getExtractionPath,
+  TEMP_BASE,
 } from '../../../utils/fileSystem.js';
 import { WebTool } from '../tool.js';
 
@@ -66,9 +68,12 @@ function isPathSafe(targetDir: string, entryPath: string): boolean {
 }
 
 export const getUnpackTwbxTool = (server: WebMcpServer): WebTool<typeof paramsSchema> => {
+  const config = getConfig();
+
   const unpackTwbxTool = new WebTool({
     server,
     name: 'unpack-twbx',
+    disabled: !config.adminToolsEnabled,
     description: `
 Extracts and analyzes the contents of a Tableau .twbx file. A .twbx is a packaged workbook containing the workbook XML (.twb), data extracts, and images.
 
@@ -111,6 +116,25 @@ Returns the extraction path and a categorized inventory of all files. Use with f
 
           const baseName = path.basename(filePath, '.twbx');
           await ensureExtractionsDir();
+
+          // C1 fix: if the caller supplies extractTo, it must resolve within TEMP_BASE.
+          // isPathSafe only guards archive entries relative to extractTo — it does not
+          // restrict where extractTo itself points, so an unconstrained extractTo allows
+          // arbitrary-directory writes as the container user.
+          if (extractTo) {
+            const resolvedExtractTo = path.resolve(extractTo);
+            const resolvedBase = path.resolve(TEMP_BASE);
+            if (
+              !resolvedExtractTo.startsWith(resolvedBase + path.sep) &&
+              resolvedExtractTo !== resolvedBase
+            ) {
+              return new UnknownError(
+                `extractTo must be within the MCP temp directory (${TEMP_BASE})`,
+                400,
+              ).toErr();
+            }
+          }
+
           const extractionPath = extractTo || getExtractionPath(baseName);
 
           let zip: AdmZip;
@@ -133,6 +157,7 @@ Returns the extraction path and a categorized inventory of all files. Use with f
           let totalSize = 0;
           let mainTwbFile: string | null = null;
 
+          let extractionSucceeded = false;
           try {
             await fs.mkdir(extractionPath, { recursive: true });
 
@@ -186,9 +211,15 @@ Returns the extraction path and a categorized inventory of all files. Use with f
               await fs.mkdir(targetDir, { recursive: true });
               await fs.writeFile(targetPath, entry.getData());
             }
+            extractionSucceeded = true;
           } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             return new UnknownError(`Failed to extract TWBX file: ${message}`, 500).toErr();
+          } finally {
+            // Clean up partially-extracted dir on failure to avoid leaking temp files.
+            if (!extractionSucceeded) {
+              await fs.rm(extractionPath, { recursive: true, force: true });
+            }
           }
 
           return new Ok({

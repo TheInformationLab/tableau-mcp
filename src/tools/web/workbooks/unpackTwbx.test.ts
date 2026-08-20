@@ -5,6 +5,7 @@ import * as os from 'os';
 import * as path from 'path';
 
 import { WebMcpServer } from '../../../server.web.js';
+import { TEMP_BASE } from '../../../utils/fileSystem.js';
 import { Provider } from '../../../utils/provider.js';
 import { getMockRequestHandlerExtra } from '../toolContext.mock.js';
 import { getUnpackTwbxTool } from './unpackTwbx.js';
@@ -30,11 +31,16 @@ async function getToolResult(args: {
 
 describe('unpackTwbxTool', () => {
   let tmpDir: string;
+  let extractBase: string;
   beforeEach(async () => {
     tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unpack-twbx-test-'));
+    // extractTo must be within TEMP_BASE per the C1 security constraint; use a
+    // unique subdir so parallel test runs don't collide.
+    extractBase = path.join(TEMP_BASE, 'test-' + path.basename(tmpDir));
   });
   afterEach(async () => {
     await fs.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
+    await fs.rm(extractBase, { recursive: true, force: true }).catch(() => {});
   });
 
   it('should have correct name', () => {
@@ -65,7 +71,7 @@ describe('unpackTwbxTool', () => {
       'images/thumbnail.png': 'png-bytes',
       'notes.txt': 'other',
     });
-    const extractTo = path.join(tmpDir, 'out');
+    const extractTo = path.join(extractBase, 'out');
     const result = await getToolResult({ filePath: twbxPath, extractTo });
     expect(result.isError).toBeFalsy();
     const parsed = JSON.parse((result.content[0] as { text: string }).text);
@@ -87,7 +93,9 @@ describe('unpackTwbxTool', () => {
     zip.getEntries()[0].entryName = '../evil.txt';
     const twbxPath = path.join(tmpDir, 'evil.twbx');
     zip.writeZip(twbxPath);
-    const extractTo = path.join(tmpDir, 'out');
+    // extractTo is within TEMP_BASE (C1 constraint); '../evil.txt' still escapes
+    // extractTo and is caught by isPathSafe (the Zip Slip guard).
+    const extractTo = path.join(extractBase, 'out');
     const result = await getToolResult({ filePath: twbxPath, extractTo });
     expect(result.isError).toBe(true);
     expect((result.content[0] as { text: string }).text).toContain('Unsafe path');
