@@ -57,3 +57,7 @@ tableau-mcp-desktop.exe
 sea-prep.*.blob
 sea-config.*.generated.json
 asset-manifest.*.generated.json
+
+# Local MCP client test config with real credentials - never commit
+config.node.json
+config.*.local.json

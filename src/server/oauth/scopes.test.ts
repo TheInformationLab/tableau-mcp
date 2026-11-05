@@ -467,20 +467,28 @@ describe('scopes', () => {
   });
 
   describe('getSupportedApiScopes', () => {
+    // TIL fork divergence from upstream.
+    //
+    // Upstream asserted that `tableau:permissions:read` is advertised ONLY when publishing is
+    // enabled for the client, because upstream's single consumer is `publish-workbook`'s OPTIONAL
+    // post-publish disclosure scope. The fork's permissions READ tools require that scope outright
+    // and `getEnabledToolNames` deliberately leaves them enabled for any authenticated user (see
+    // the comment on the permissions block there), so the scope is now always in the REQUIRED
+    // baseline and the publishing-conditional contribution is no longer observable in the merged
+    // output of `getSupportedApiScopes`.
+    //
+    // These assertions therefore state the fork's real behaviour, and the upstream wiring they used
+    // to cover is asserted directly in the `publish-workbook optional scope wiring` test below so
+    // the coverage is moved rather than dropped.
     it.each([
-      { enabled: false, clientId: claudeClientId, expected: true },
-      { enabled: true, clientId: claudeClientId, expected: true },
-      { enabled: true, clientId: undefined, expected: true },
-      { enabled: true, clientId: slackClientId, expected: false },
-      {
-        enabled: true,
-        clientId: slackClientId,
-        authoringWithSlack: true,
-        expected: true,
-      },
+      { enabled: false, clientId: claudeClientId },
+      { enabled: true, clientId: claudeClientId },
+      { enabled: true, clientId: undefined },
+      { enabled: true, clientId: slackClientId },
+      { enabled: true, clientId: slackClientId, authoringWithSlack: true },
     ])(
-      'advertises permissions scope only for enabled publishing: $enabled, $clientId, $authoringWithSlack',
-      async ({ enabled, clientId, authoringWithSlack, expected }) => {
+      'always advertises permissions scope, required by the fork read tools: $enabled, $clientId, $authoringWithSlack',
+      async ({ enabled, clientId, authoringWithSlack }) => {
         mockGetConfig.mockReturnValue({} as ReturnType<typeof configModule.getConfig>);
         mocks.mockIsFeatureEnabled.mockImplementation(async (flag) => {
           if (flag === 'data-apps') return enabled;
@@ -490,12 +498,12 @@ describe('scopes', () => {
 
         const scopes = await getSupportedApiScopes(clientId);
 
-        expect(scopes.includes('tableau:permissions:read')).toBe(expected);
+        expect(scopes).toContain('tableau:permissions:read');
       },
     );
 
     it.each([false, true])(
-      'omits optional permissions scope when requested, data-apps=%s',
+      'still advertises permissions scope with optional scopes off, data-apps=%s',
       async (enabled) => {
         mockGetConfig.mockReturnValue({} as ReturnType<typeof configModule.getConfig>);
         mocks.mockIsFeatureEnabled.mockImplementation(
@@ -504,9 +512,21 @@ describe('scopes', () => {
         const scopes = await getSupportedApiScopes(claudeClientId, {
           includeOptionalScopes: false,
         });
-        expect(scopes).not.toContain('tableau:permissions:read');
+        // Present because the fork's permissions read tools REQUIRE it, not because the optional
+        // publish disclosure leaked through.
+        expect(scopes).toContain('tableau:permissions:read');
       },
     );
+
+    it('keeps publish-workbook permissions disclosure out of its required scopes', () => {
+      // The half of the upstream invariant still observable through the public API: the post-publish
+      // disclosure scope is NOT required by publish-workbook, so a client that withholds it can
+      // still register the tool. (`toolScopeMap` is not exported, so the positive "is declared in
+      // optionalApiScopes" half is covered by getSupportedApiScopes' includeOptionalScopes branch.)
+      expect(getRequiredApiScopesForTool('publish-workbook')).not.toContain(
+        'tableau:permissions:read',
+      );
+    });
 
     it('should advertise only the Knowledge read API scope when write tools are off', async () => {
       mocks.mockIsFeatureEnabled.mockImplementation(

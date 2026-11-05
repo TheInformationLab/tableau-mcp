@@ -6,7 +6,10 @@ import { getListDatasourcesTool } from './datasources/listDatasources.js';
 import { getPublishDatasourceTool } from './datasources/publishDatasource.js';
 import { getRequestDatasourceUploadTool } from './datasources/requestDatasourceUpload.js';
 import { getConfirmUpdateCloudExtractRefreshTaskTool } from './extractRefreshTasks/confirmUpdateCloudExtractRefreshTask.js';
+import { getCreateExtractRefreshTaskTool } from './extractRefreshTasks/createExtractRefreshTask.js';
+import { getGetExtractRefreshTaskTool } from './extractRefreshTasks/getExtractRefreshTask.js';
 import { getListExtractRefreshTasksTool } from './extractRefreshTasks/listExtractRefreshTasks.js';
+import { getRunExtractRefreshTaskTool } from './extractRefreshTasks/runExtractRefreshTask.js';
 import { getUpdateCloudExtractRefreshTaskTool } from './extractRefreshTasks/updateCloudExtractRefreshTask.js';
 import { getCancelFlowRunTool } from './flows/cancelFlowRun/cancelFlowRun.js';
 import { getDescribeFlowTool } from './flows/describeFlow/describeFlow.js';
@@ -19,11 +22,30 @@ import { getRunFlowTool } from './flows/runFlow/runFlow.js';
 import { getRunFlowTaskTool } from './flows/runFlowTask/runFlowTask.js';
 import { getGetDatasourceMetadataTool } from './getDatasourceMetadata/getDatasourceMetadata.js';
 import { getEmbedTokenTool } from './getEmbedToken/getEmbedToken.js';
+import { getAddUserToGroupTool } from './groups/addUserToGroup.js';
+import { getCreateGroupTool } from './groups/createGroup.js';
+import { getDeleteGroupTool } from './groups/deleteGroup.js';
+import { getListGroupsTool } from './groups/listGroups.js';
+import { getListUsersInGroupTool } from './groups/listUsersInGroup.js';
+import { getRemoveUserFromGroupTool } from './groups/removeUserFromGroup.js';
+import { getUpdateGroupTool } from './groups/updateGroup.js';
 import { getListJobsTool } from './jobs/listJobs.js';
 import { getInspectKnowledgeContextTool } from './knowledge/inspectKnowledgeContext.js';
 import { getManageKnowledgeContextTool } from './knowledge/manageKnowledgeContext.js';
 import { getQueryKnowledgeContextTool } from './knowledge/queryKnowledgeContext.js';
+import { getAddPermissionsTool } from './permissions/addPermissions.js';
+import { getDeleteDefaultPermissionTool } from './permissions/deleteDefaultPermission.js';
+import { getDeletePermissionTool } from './permissions/deletePermission.js';
+import { getListDatasourcePermissionsTool } from './permissions/listDatasourcePermissions.js';
+import { getListDefaultPermissionsTool } from './permissions/listDefaultPermissions.js';
+import { getListProjectPermissionsTool } from './permissions/listProjectPermissions.js';
+import { getListViewPermissionsTool } from './permissions/listViewPermissions.js';
+import { getListWorkbookPermissionsTool } from './permissions/listWorkbookPermissions.js';
+import { getUpdateDefaultPermissionsTool } from './permissions/updateDefaultPermissions.js';
+import { getCreateProjectTool } from './projects/createProject.js';
+import { getDeleteProjectTool } from './projects/deleteProject.js';
 import { getListProjectsTool } from './projects/listProjects.js';
+import { getUpdateProjectTool } from './projects/updateProject.js';
 import { getGeneratePulseInsightBriefTool } from './pulse/generateInsightBrief/generatePulseInsightBriefTool.js';
 import { getGeneratePulseMetricValueInsightBundleTool } from './pulse/generateMetricValueInsightBundle/generatePulseMetricValueInsightBundleTool.js';
 import { getGenerateInsightCardsTool } from './pulse/insights/generateInsightCardsTool.js';
@@ -38,6 +60,10 @@ import { getRenderInteractiveVizTool } from './renderInteractiveViz/renderIntera
 import { getResetConsentTool } from './resetConsent/resetConsent.js';
 import { getRevokeAccessTokenTool } from './revokeAccessToken/revokeAccessToken.js';
 import { getScaffoldDataAppTool } from './scaffoldDataApp/scaffoldDataApp.js';
+import { getCreateUserTool } from './users/createUser.js';
+import { getDeleteUserTool } from './users/deleteUser.js';
+import { getGetUserTool } from './users/getUser.js';
+import { getListGroupsForUserTool } from './users/listGroupsForUser.js';
 import { getListUsersTool } from './users/listUsers.js';
 import { getUpdateUserTool } from './users/updateUser.js';
 import { getGetCustomViewDataTool } from './views/getCustomViewData.js';
@@ -52,7 +78,9 @@ import { getGetWorkbookTool } from './workbooks/getWorkbook.js';
 import { getListWorkbooksTool } from './workbooks/listWorkbooks.js';
 import { getMoveWorkbookTool } from './workbooks/moveWorkbook.js';
 import { getPublishWorkbookTool } from './workbooks/publishWorkbook.js';
+import { getReadExtractedFileTool } from './workbooks/readExtractedFile.js';
 import { getRequestWorkbookUploadTool } from './workbooks/requestWorkbookUpload.js';
+import { getUnpackTwbxTool } from './workbooks/unpackTwbx.js';
 
 export const webToolFactories = [
   getGetDatasourceMetadataTool,
@@ -65,6 +93,9 @@ export const webToolFactories = [
   getListExtractRefreshTasksTool,
   getUpdateCloudExtractRefreshTaskTool,
   getConfirmUpdateCloudExtractRefreshTaskTool,
+  getGetExtractRefreshTaskTool,
+  getCreateExtractRefreshTaskTool,
+  getRunExtractRefreshTaskTool,
   getListJobsTool,
   getQueryKnowledgeContextTool,
   getInspectKnowledgeContextTool,
@@ -99,6 +130,9 @@ export const webToolFactories = [
   getGetViewImageTool,
   getListWorkbooksTool,
   getListProjectsTool,
+  getCreateProjectTool,
+  getUpdateProjectTool,
+  getDeleteProjectTool,
   getListViewsTool,
   getListCustomViewsTool,
   getGetCustomViewDataTool,
@@ -110,4 +144,29 @@ export const webToolFactories = [
   getDeleteContentTool,
   getConfirmDeleteContentTool,
   getScaffoldDataAppTool,
+  // Users + Groups (TIL port)
+  getGetUserTool,
+  getCreateUserTool,
+  getDeleteUserTool,
+  getListGroupsForUserTool,
+  getListGroupsTool,
+  getCreateGroupTool,
+  getUpdateGroupTool,
+  getDeleteGroupTool,
+  getListUsersInGroupTool,
+  getAddUserToGroupTool,
+  getRemoveUserFromGroupTool,
+  // Permissions (TIL port)
+  getListProjectPermissionsTool,
+  getListWorkbookPermissionsTool,
+  getListDatasourcePermissionsTool,
+  getListViewPermissionsTool,
+  getListDefaultPermissionsTool,
+  getAddPermissionsTool,
+  getUpdateDefaultPermissionsTool,
+  getDeletePermissionTool,
+  getDeleteDefaultPermissionTool,
+  // Workbook custom (TIL port)
+  getUnpackTwbxTool,
+  getReadExtractedFileTool,
 ];

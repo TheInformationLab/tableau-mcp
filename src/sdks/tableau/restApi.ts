@@ -19,11 +19,13 @@ import ContentExplorationMethods from './methods/contentExplorationMethods.js';
 import DatasourcesMethods from './methods/datasourcesMethods.js';
 import FlowDocumentMethods from './methods/flowDocumentMethods.js';
 import FlowsMethods from './methods/flowsMethods.js';
+import GroupsMethods from './methods/groupsMethods.js';
 import JobsMethods from './methods/jobsMethods.js';
 import KnowledgeMethods from './methods/knowledgeMethods.js';
 import McpSettingsMethods from './methods/mcpSettingsMethods.js';
 import MetadataMethods from './methods/metadataMethods.js';
 import PackagesMethods from './methods/packagesMethods.js';
+import PermissionsMethods from './methods/permissionsMethods.js';
 import PersonalSpaceMethods from './methods/personalSpaceMethods.js';
 import ProjectsMethods from './methods/projectsMethods.js';
 import PublishingMethods from './methods/publishingMethods.js';
@@ -213,6 +215,15 @@ export class RestApi {
     return packagesMethods;
   }
 
+  get groupsMethods(): GroupsMethods {
+    const groupsMethods = new GroupsMethods(RestApi.baseUrl, this.creds, {
+      timeout: this._maxRequestTimeoutMs,
+      signal: this._signal,
+    });
+    this._addInterceptors(RestApi.baseUrl, groupsMethods.interceptors);
+    return groupsMethods;
+  }
+
   get metadataMethods(): MetadataMethods {
     const baseUrl = `${RestApi.host}/api/metadata`;
     const metadataMethods = new MetadataMethods(baseUrl, this.creds, {
@@ -221,6 +232,15 @@ export class RestApi {
     });
     this._addInterceptors(baseUrl, metadataMethods.interceptors);
     return metadataMethods;
+  }
+
+  get permissionsMethods(): PermissionsMethods {
+    const permissionsMethods = new PermissionsMethods(RestApi.baseUrl, this.creds, {
+      timeout: this._maxRequestTimeoutMs,
+      signal: this._signal,
+    });
+    this._addInterceptors(RestApi.baseUrl, permissionsMethods.interceptors);
+    return permissionsMethods;
   }
 
   get projectsMethods(): ProjectsMethods {

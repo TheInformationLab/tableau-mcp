@@ -17,12 +17,14 @@ import * as contentExplorationApi from '../tableau/apis/contentExplorationApi.js
 import * as datasourcesApi from '../tableau/apis/datasourcesApi.js';
 import * as flowDocumentApi from '../tableau/apis/flowDocumentApi.js';
 import * as flowsApi from '../tableau/apis/flowsApi.js';
+import * as groupsApi from '../tableau/apis/groupsApi.js';
 import * as jobsApi from '../tableau/apis/jobsApi.js';
 import * as knowledgeApi from '../tableau/apis/knowledgeApi.js';
 import * as mcpSettingsApi from '../tableau/apis/mcpSettingsApi.js';
 import * as metadataApi from '../tableau/apis/metadataApi.js';
 import * as packagesApi from '../tableau/apis/packagesApi.js';
 import * as paginationParameters from '../tableau/apis/paginationParameters.js';
+import * as permissionsApi from '../tableau/apis/permissionsApi.js';
 import * as personalSpaceApi from '../tableau/apis/personalSpaceApi.js';
 import * as projectsApi from '../tableau/apis/projectsApi.js';
 import * as pulseApi from '../tableau/apis/pulseApi.js';
@@ -51,12 +53,14 @@ const modules: Record<string, Record<string, unknown>> = {
   'tableau/apis/datasourcesApi.ts': datasourcesApi,
   'tableau/apis/flowDocumentApi.ts': flowDocumentApi,
   'tableau/apis/flowsApi.ts': flowsApi,
+  'tableau/apis/groupsApi.ts': groupsApi,
   'tableau/apis/jobsApi.ts': jobsApi,
   'tableau/apis/knowledgeApi.ts': knowledgeApi,
   'tableau/apis/mcpSettingsApi.ts': mcpSettingsApi,
   'tableau/apis/metadataApi.ts': metadataApi,
   'tableau/apis/packagesApi.ts': packagesApi,
   'tableau/apis/paginationParameters.ts': paginationParameters,
+  'tableau/apis/permissionsApi.ts': permissionsApi,
   'tableau/apis/personalSpaceApi.ts': personalSpaceApi,
   'tableau/apis/projectsApi.ts': projectsApi,
   'tableau/apis/pulseApi.ts': pulseApi,

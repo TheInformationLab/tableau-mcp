@@ -40,10 +40,18 @@ export const auditRecordSchema = z.object({
     name: z.string().optional(),
     project: z.string().optional(),
     owner: z.string().optional(),
-    // 'user' is reserved/forward-looking — no user-mutation tool emits it yet. Retained so this
-    // audit schema stays stable (and version 1 valid) when one is added; dropping it would be a
-    // breaking change for audit-log consumers parsing this enum.
-    kind: z.enum(['datasource', 'workbook', 'extract-refresh-task', 'user']),
+    // 'user' is used by update-user / delete-user. 'group' by delete-group. 'project' by
+    // delete-project. 'permission' by the permissions-mutating tools (add-permissions,
+    // update-default-permissions, delete-permission, delete-default-permission).
+    kind: z.enum([
+      'datasource',
+      'workbook',
+      'extract-refresh-task',
+      'user',
+      'project',
+      'group',
+      'permission',
+    ]),
   }),
   confirmationEvidence: z.object({
     kind: z.enum(['tag', 'registry-nonce', 'none']),

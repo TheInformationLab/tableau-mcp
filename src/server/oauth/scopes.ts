@@ -46,7 +46,13 @@ export type McpScope =
   | 'tableau:mcp:users:write'
   | 'tableau:mcp:workbook:write'
   | 'tableau:mcp:knowledge:read'
-  | 'tableau:mcp:knowledge:write';
+  | 'tableau:mcp:knowledge:write'
+  | 'tableau:mcp:groups:read'
+  | 'tableau:mcp:groups:write'
+  | 'tableau:mcp:permissions:read'
+  | 'tableau:mcp:permissions:write'
+  | 'tableau:mcp:permissions:delete'
+  | 'tableau:mcp:workbook:extract';
 
 export type TableauApiScope =
   | 'tableau:content:read'
@@ -71,6 +77,8 @@ export type TableauApiScope =
   | 'tableau:tasks:read'
   | 'tableau:tasks:delete'
   | 'tableau:tasks:write'
+  | 'tableau:tasks:create'
+  | 'tableau:tasks:run'
   | 'tableau:workbook_tags:update'
   | 'tableau:workbook_tags:delete'
   | 'tableau:workbooks:download'
@@ -88,8 +96,20 @@ export type TableauApiScope =
   | 'tableau:workbooks:update'
   | 'tableau:knowledge:read'
   | 'tableau:knowledge:write'
+  | 'tableau:packages:read'
+  | 'tableau:users:create'
+  | 'tableau:users:delete'
+  | 'tableau:groups:read'
+  | 'tableau:groups:create'
+  | 'tableau:groups:update'
+  | 'tableau:groups:delete'
+  | 'tableau:projects:create'
+  | 'tableau:projects:update'
+  | 'tableau:projects:delete'
+  // 'tableau:permissions:read' is added by both upstream and the TIL port - listed once.
   | 'tableau:permissions:read'
-  | 'tableau:packages:read';
+  | 'tableau:permissions:update'
+  | 'tableau:permissions:delete';
 
 /**
  * Default scopes supported by the MCP server
@@ -116,6 +136,12 @@ export const DEFAULT_SCOPES_SUPPORTED: ReadonlyArray<McpScope> = [
   'tableau:mcp:insight:create',
   'tableau:mcp:knowledge:read',
   'tableau:mcp:knowledge:write',
+  'tableau:mcp:groups:read',
+  'tableau:mcp:groups:write',
+  'tableau:mcp:permissions:read',
+  'tableau:mcp:permissions:write',
+  'tableau:mcp:permissions:delete',
+  'tableau:mcp:workbook:extract',
 ];
 
 export const RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES: ReadonlyArray<TableauApiScope> = [
@@ -316,6 +342,43 @@ const toolScopeMap: Record<
   'list-projects': {
     mcp: ['tableau:mcp:content:read'],
     api: new Set(['tableau:content:read', 'tableau:mcp_site_settings:read']),
+  },
+  'create-project': {
+    mcp: ['tableau:mcp:content:read'],
+    api: new Set([
+      'tableau:projects:create',
+      'tableau:users:read',
+      ...RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES,
+    ]),
+  },
+  'update-project': {
+    mcp: ['tableau:mcp:content:read'],
+    api: new Set([
+      'tableau:projects:update',
+      'tableau:users:read',
+      ...RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES,
+    ]),
+  },
+  'delete-project': {
+    mcp: ['tableau:mcp:content:delete'],
+    api: new Set([
+      'tableau:projects:delete',
+      'tableau:content:read',
+      'tableau:users:read',
+      ...RESOURCE_ACCESS_CHECKER_REQUIRED_API_SCOPES,
+    ]),
+  },
+  'get-extract-refresh-task': {
+    mcp: ['tableau:mcp:tasks:read'],
+    api: new Set(['tableau:tasks:read', 'tableau:users:read']),
+  },
+  'create-extract-refresh-task': {
+    mcp: ['tableau:mcp:tasks:write'],
+    api: new Set(['tableau:tasks:create', 'tableau:users:read']),
+  },
+  'run-extract-refresh-task': {
+    mcp: ['tableau:mcp:tasks:write'],
+    api: new Set(['tableau:tasks:run', 'tableau:users:read']),
   },
   'list-views': {
     mcp: ['tableau:mcp:view:read'],
@@ -568,6 +631,97 @@ const toolScopeMap: Record<
     mcp: [],
     api: new Set(SCAFFOLD_DATA_APP_API_SCOPES),
   },
+  'get-user': {
+    mcp: ['tableau:mcp:users:read'],
+    api: new Set(['tableau:users:read']),
+  },
+  'create-user': {
+    mcp: ['tableau:mcp:users:write'],
+    api: new Set(['tableau:users:create', 'tableau:users:read']),
+  },
+  'delete-user': {
+    mcp: ['tableau:mcp:users:write'],
+    api: new Set(['tableau:users:delete', 'tableau:users:read']),
+  },
+  'list-groups-for-user': {
+    mcp: ['tableau:mcp:groups:read'],
+    api: new Set(['tableau:groups:read', 'tableau:users:read', 'tableau:mcp_site_settings:read']),
+  },
+  'list-groups': {
+    mcp: ['tableau:mcp:groups:read'],
+    api: new Set(['tableau:groups:read', 'tableau:users:read', 'tableau:mcp_site_settings:read']),
+  },
+  'create-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:create', 'tableau:users:read']),
+  },
+  'update-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:update', 'tableau:users:read']),
+  },
+  'delete-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:delete', 'tableau:groups:read', 'tableau:users:read']),
+  },
+  'list-users-in-group': {
+    mcp: ['tableau:mcp:groups:read'],
+    api: new Set(['tableau:groups:read', 'tableau:users:read', 'tableau:mcp_site_settings:read']),
+  },
+  'add-user-to-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:update', 'tableau:users:read']),
+  },
+  'remove-user-from-group': {
+    mcp: ['tableau:mcp:groups:write'],
+    api: new Set(['tableau:groups:update', 'tableau:users:read']),
+  },
+  // Permissions - TIL port. Reads are permissions:read; mutations require admin gate and route
+  // through guardMutation (see src/tools/web/permissions/).
+  'list-project-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'list-workbook-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'list-datasource-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'list-view-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'list-default-permissions': {
+    mcp: ['tableau:mcp:permissions:read'],
+    api: new Set(['tableau:permissions:read']),
+  },
+  'add-permissions': {
+    mcp: ['tableau:mcp:permissions:write'],
+    api: new Set(['tableau:permissions:update', 'tableau:users:read']),
+  },
+  'update-default-permissions': {
+    mcp: ['tableau:mcp:permissions:write'],
+    api: new Set(['tableau:permissions:update', 'tableau:users:read']),
+  },
+  'delete-permission': {
+    mcp: ['tableau:mcp:permissions:delete'],
+    api: new Set(['tableau:permissions:delete', 'tableau:users:read']),
+  },
+  'delete-default-permission': {
+    mcp: ['tableau:mcp:permissions:delete'],
+    api: new Set(['tableau:permissions:delete', 'tableau:users:read']),
+  },
+  // Workbook custom tools - TIL port. Pure filesystem operations; no Tableau REST calls.
+  'unpack-twbx': {
+    mcp: ['tableau:mcp:workbook:extract'],
+    api: new Set<TableauApiScope>(),
+  },
+  'read-extracted-file': {
+    mcp: ['tableau:mcp:workbook:extract'],
+    api: new Set<TableauApiScope>(),
+  },
 };
 
 async function getEnabledToolNames(clientId?: string): Promise<Set<WebToolName>> {
@@ -597,6 +751,31 @@ async function getEnabledToolNames(clientId?: string): Promise<Set<WebToolName>>
     enabledTools.delete('update-user');
     enabledTools.delete('query-admin-insights');
     enabledTools.delete('delete-content');
+    // Projects + Extract Refresh admin-only surface (TIL fork port).
+    enabledTools.delete('create-project');
+    enabledTools.delete('update-project');
+    enabledTools.delete('delete-project');
+    enabledTools.delete('get-extract-refresh-task');
+    enabledTools.delete('create-extract-refresh-task');
+    enabledTools.delete('run-extract-refresh-task');
+    // Users + Groups admin-only surface (TIL fork port).
+    enabledTools.delete('get-user');
+    enabledTools.delete('create-user');
+    enabledTools.delete('delete-user');
+    enabledTools.delete('list-groups-for-user');
+    enabledTools.delete('list-groups');
+    enabledTools.delete('create-group');
+    enabledTools.delete('update-group');
+    enabledTools.delete('delete-group');
+    enabledTools.delete('list-users-in-group');
+    enabledTools.delete('add-user-to-group');
+    enabledTools.delete('remove-user-from-group');
+    // Permissions mutations are admin-only (they use assertAdmin + guardMutation). Reads
+    // remain available to any authenticated user with the permissions:read API scope.
+    enabledTools.delete('add-permissions');
+    enabledTools.delete('update-default-permissions');
+    enabledTools.delete('delete-permission');
+    enabledTools.delete('delete-default-permission');
   }
 
   // Remove the MCP-Apps-only tools if the mcp-apps feature is disabled. The confirm-* tools are the

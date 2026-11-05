@@ -109,6 +109,39 @@ export const activityLogObjectSources: Record<WebToolName, ObjectSource | null> 
   'inspect-knowledge-context': null,
   'manage-knowledge-context': null,
   'scaffold-data-app': null,
+  // TIL fork tools. `null` here means the Activity Log event carries no object reference, which is
+  // the honest mapping for the project/group/permission tools: `activityLogObjectTypes` has no
+  // 'project', 'group' or 'permission' member, and inventing vocabulary an external
+  // ACTIVITY_LOG_PROVIDER does not recognize is worse than omitting the reference. The fork's own
+  // audit trail for these mutations comes from `emitAuditRecord` in guardMutation, not from here.
+  'get-user': idIn('user', 'userId'),
+  'create-user': null,
+  'delete-user': idIn('user', 'userId'),
+  'list-groups-for-user': idIn('user', 'userId'),
+  'list-groups': null,
+  'create-group': null,
+  'update-group': null,
+  'delete-group': null,
+  'list-users-in-group': null,
+  'add-user-to-group': idIn('user', 'userId'),
+  'remove-user-from-group': idIn('user', 'userId'),
+  'create-project': null,
+  'update-project': null,
+  'delete-project': null,
+  'get-extract-refresh-task': idIn('extract-refresh-task', 'taskId'),
+  'create-extract-refresh-task': null,
+  'run-extract-refresh-task': idIn('extract-refresh-task', 'taskId'),
+  'list-project-permissions': null,
+  'list-workbook-permissions': idIn('workbook', 'workbookId'),
+  'list-datasource-permissions': idIn('datasource', 'datasourceId'),
+  'list-view-permissions': idIn('view', 'viewId'),
+  'list-default-permissions': null,
+  'add-permissions': null,
+  'update-default-permissions': null,
+  'delete-permission': null,
+  'delete-default-permission': null,
+  'unpack-twbx': null,
+  'read-extracted-file': null,
 };
 
 /**

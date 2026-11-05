@@ -325,10 +325,14 @@ describe('initialize with optional post-publish permission disclosure', () => {
       expect(advertisedScopes).toContain(PUBLISH_WORKBOOK_PERMISSIONS_API_SCOPE);
       expect(advertisedScopes).toContain('tableau:projects:read');
 
+      // TIL fork divergence: upstream also stripped PUBLISH_WORKBOOK_PERMISSIONS_API_SCOPE here to
+      // prove the post-publish disclosure stays optional. In the fork that same scope is REQUIRED —
+      // the permissions read tools declare it and `getEnabledToolNames` leaves them enabled for
+      // every authenticated caller — so withholding it is a genuine insufficient_scope, not an
+      // optional omission. It is therefore granted here, and this case keeps covering the
+      // `tableau:projects:read` enforcement path. The still-optional half is asserted below.
       const scopes = advertisedScopes.filter(
-        (scope) =>
-          scope !== PUBLISH_WORKBOOK_PERMISSIONS_API_SCOPE &&
-          (hasProjectsRead || scope !== 'tableau:projects:read'),
+        (scope) => hasProjectsRead || scope !== 'tableau:projects:read',
       );
       const authInfo = { scopes, clientId };
       const middleware = authMiddleware(makeValidator(new Ok(authInfo)));
@@ -360,12 +364,45 @@ describe('initialize with optional post-publish permission disclosure', () => {
         expect(res.statusCode).toBe(403);
         expect(res.body.error).toBe('insufficient_scope');
         expect(res.headers['WWW-Authenticate']).toContain('tableau:projects:read');
-        expect(res.headers['WWW-Authenticate']).not.toContain(
-          PUBLISH_WORKBOOK_PERMISSIONS_API_SCOPE,
-        );
       }
     },
   );
+
+  it('treats the publish disclosure scope as required in this fork', async () => {
+    // Documents the fork's actual contract so a future upstream rebase notices if it changes:
+    // withholding `tableau:permissions:read` fails initialize, because the fork's permissions read
+    // tools require it. Upstream, where publish-workbook's optional declaration is the only
+    // consumer, the same request would be allowed through.
+    const clientId = 'https://chatgpt.com/connector';
+    const advertisedScopes = await getSupportedScopes({ includeApiScopes: true, clientId });
+    const scopes = advertisedScopes.filter(
+      (scope) => scope !== PUBLISH_WORKBOOK_PERMISSIONS_API_SCOPE,
+    );
+    const middleware = authMiddleware(makeValidator(new Ok({ scopes, clientId })));
+    const req = {
+      headers: { authorization: 'Bearer valid-token' },
+      method: 'POST',
+      body: {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: {
+          protocolVersion: '2025-03-26',
+          capabilities: {},
+          clientInfo: { name: 'test-client', version: '1.0.0' },
+        },
+      },
+    } as unknown as AuthenticatedRequest;
+    const res = makeRes();
+    const next = vi.fn();
+
+    await middleware(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(403);
+    expect(res.body.error).toBe('insufficient_scope');
+    expect(res.headers['WWW-Authenticate']).toContain(PUBLISH_WORKBOOK_PERMISSIONS_API_SCOPE);
+  });
 });
 
 describe('external authorization server token scopes', () => {

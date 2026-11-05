@@ -3,7 +3,10 @@ import { z } from 'zod';
 
 import { pathParam } from '../../routeSafety/ids.js';
 import {
+  createExtractRefreshTaskFrequencyDetailsSchema,
+  createExtractRefreshTaskResponseSchema,
   extractRefreshTaskSchema,
+  jobSchema,
   updateCloudExtractRefreshTaskRequestSchema,
   updateCloudExtractRefreshTaskResponseSchema,
 } from '../types/extractRefreshTask.js';
@@ -170,6 +173,88 @@ const runFlowTaskEndpoint = makeEndpoint({
   response: runFlowJobResponseSchema,
 });
 
+/**
+ * Get Extract Refresh Task
+ * GET /api/api-version/sites/site-id/tasks/extractRefreshes/task-id
+ * Returns details for a specific extract refresh task, including the schedule and consecutive
+ * failure count. There is no dedicated "Get Task" REST endpoint that returns the same wrapper
+ * shape as the list endpoint (`{ task: { extractRefresh: ... } }`); this per-task endpoint
+ * returns just `{ extractRefresh: ... }`.
+ * Tableau Cloud scope: tableau:tasks:read
+ * @see https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#get_extract_refresh_task1
+ */
+const getExtractRefreshTaskEndpoint = makeEndpoint({
+  method: 'get',
+  path: '/sites/:siteId/tasks/extractRefreshes/:taskId',
+  alias: 'getExtractRefreshTask',
+  description: 'Gets details for a specific extract refresh task.',
+  parameters: [pathParam('siteId', 'segment'), pathParam('taskId')],
+  response: z.object({
+    extractRefresh: extractRefreshTaskSchema.partial().optional(),
+    schedule: z.unknown().optional(),
+  }),
+});
+
+/**
+ * Create Extract Refresh Task
+ * POST /api/api-version/sites/site-id/tasks/extractRefreshes
+ * Creates a new scheduled extract refresh task for a workbook or datasource.
+ * Tableau Cloud only (API 3.20+).
+ * Tableau Cloud scope: tableau:tasks:create
+ * @see https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#create_extract_refresh_task1
+ */
+const createExtractRefreshTaskEndpoint = makeEndpoint({
+  method: 'post',
+  path: '/sites/:siteId/tasks/extractRefreshes',
+  alias: 'createExtractRefreshTask',
+  description: 'Creates an extract refresh task on the specified site.',
+  parameters: [
+    pathParam('siteId', 'segment'),
+    {
+      name: 'body',
+      type: 'Body',
+      schema: z.object({
+        extractRefresh: z.object({
+          type: z.string(),
+          workbook: z.object({ id: z.string() }).optional(),
+          datasource: z.object({ id: z.string() }).optional(),
+        }),
+        schedule: z.object({
+          frequency: z.string(),
+          frequencyDetails: createExtractRefreshTaskFrequencyDetailsSchema.optional(),
+        }),
+      }),
+    },
+  ],
+  response: createExtractRefreshTaskResponseSchema,
+});
+
+/**
+ * Run Extract Refresh Task Now
+ * POST /api/api-version/sites/site-id/tasks/extractRefreshes/task-id/runNow
+ * Runs an extract refresh task immediately, outside its normal schedule. Returns a Job object.
+ * Tableau Cloud scope: tableau:tasks:run
+ * @see https://help.tableau.com/current/api/rest_api/en-us/REST/rest_api_ref_extract_and_encryption.htm#run_extract_refresh_task
+ */
+const runExtractRefreshTaskEndpoint = makeEndpoint({
+  method: 'post',
+  path: '/sites/:siteId/tasks/extractRefreshes/:taskId/runNow',
+  alias: 'runExtractRefreshTask',
+  description: 'Runs an extract refresh task immediately.',
+  parameters: [
+    pathParam('siteId', 'segment'),
+    pathParam('taskId'),
+    {
+      name: 'body',
+      type: 'Body',
+      schema: z.object({}),
+    },
+  ],
+  response: z.object({
+    job: jobSchema,
+  }),
+});
+
 const tasksApi = makeApi([
   listExtractRefreshTasksEndpoint,
   getFlowRunTasksEndpoint,
@@ -177,5 +262,8 @@ const tasksApi = makeApi([
   updateCloudExtractRefreshTaskEndpoint,
   getFlowRunTaskEndpoint,
   runFlowTaskEndpoint,
+  getExtractRefreshTaskEndpoint,
+  createExtractRefreshTaskEndpoint,
+  runExtractRefreshTaskEndpoint,
 ]);
 export const tasksApis = [...tasksApi] as const satisfies ZodiosEndpointDefinitions;

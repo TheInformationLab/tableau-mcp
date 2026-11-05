@@ -65,7 +65,24 @@ type JwtScopes =
   | 'tableau:knowledge:read'
   | 'tableau:knowledge:write'
   | 'tableau:permissions:read'
-  | 'tableau:packages:read';
+  | 'tableau:packages:read'
+  // TIL fork additions. This union must stay a superset of `TableauApiScope`
+  // (src/server/oauth/scopes.ts) - the per-tool scope maps are typed as
+  // `TableauApiScope[]` but handed to `jwtScopes`, so any scope present there and
+  // absent here fails to typecheck across every tool, not just the TIL ones.
+  | 'tableau:tasks:create'
+  | 'tableau:tasks:run'
+  | 'tableau:users:create'
+  | 'tableau:users:delete'
+  | 'tableau:groups:read'
+  | 'tableau:groups:create'
+  | 'tableau:groups:update'
+  | 'tableau:groups:delete'
+  | 'tableau:projects:create'
+  | 'tableau:projects:update'
+  | 'tableau:projects:delete'
+  | 'tableau:permissions:update'
+  | 'tableau:permissions:delete';
 
 export type RestApiArgs = Pick<
   TableauWebRequestHandlerExtra,
